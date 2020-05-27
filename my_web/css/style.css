@@ -116,3 +116,27 @@ main{
     width:100%;
     height: 150px;
 }
+
+
+#grid .k-grid-toolbar {
+    padding: .6em 1.3em .6em .4em;
+    font-size: small;
+    color: red;
+}
+
+.category-label {
+    vertical-align: middle;
+    padding-right: .5em;
+}
+
+#category {
+    vertical-align: middle;
+}
+
+.refreshBtnContainer {
+    display: inline-block;
+}
+
+.toolbar {
+    float: right;
+}

@@ -1,71 +1,83 @@
-var john = {
-    fullName: 'John smith',
-    bills: [124, 48, 268, 180, 42],
-    calcTips: function() {
-        this.tips = []
-        this.finalvalues = [];
-        
-        for (var i = 0; i < this.bills.length; i++)
-        {
-            var percentage;
-            var bill = this.bills[i];
 
-            if (bill < 50) {
-                percentage = .2;
-            } else if (bill >= 50 && bill < 200) {
-                percentage = .15;
-            } else {
-                percentage = .1;
-            }
-            this.tips[i] = bill * percentage;
-            this.finalvalues[i] = bill + this.tips[i];
-        }
-    }
-}
+< !DOCTYPE html >
+    <html>
+        <head>
+            <base href="https://demos.telerik.com/kendo-ui/window/mvvm">
+                <style>html {font - size: 14px; font-family: Arial, Helvetica, sans-serif; }</style>
+                <title></title>
+                <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.1.221/styles/kendo.common-bootstrap.min.css" />
+                <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.1.221/styles/kendo.bootstrap.min.css" />
+                <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.1.221/styles/kendo.bootstrap.mobile.min.css" />
+
+                <script src="https://kendo.cdn.telerik.com/2018.1.221/js/jquery.min.js"></script>
+                <script src="https://kendo.cdn.telerik.com/2018.1.221/js/kendo.all.min.js"></script>
 
 
-var mark = {
-    fullName: 'Mark Miller',
-    bills: [77, 375, 110, 45],
-    calcTips: function() {
-        this.tips = []
-        this.finalvalues = [];
-        
-        for (var i = 0; i < this.bills.length; i++)
-        {
-            var percentage;
-            var bill = this.bills[i];
+                <link rel="stylesheet" href="../content/shared/styles/examples-offline.css">
+                    <script src="../content/shared/js/console.js"></script>
+</head>
+                <body>
 
-            if (bill < 100) {
-                percentage = .2;
-            } else if (bill >= 100 && bill < 300) {
-                percentage = .15;
-            } else {
-                percentage = .1;
-            }
-            this.tips[i] = bill * percentage;
-            this.finalvalues[i] = bill + this.tips[i];
-        }
-    }
-}
+                    <div id="window-container">
 
-function calcAverage(tips) {
-    var sum = 0;
-    for (var i = 0; i < tips.length; i++) {
-        sum += tips[i];
-    }
-    return sum / tips.length;
-}
+                    </div>
 
-john.calcTips();
-mark.calcTips();
+                    <div id="window-container2">
 
-john.average = calcAverage(john.tips);
-mark.average = calcAverage(mark.tips);
-console.log(john, mark);
+                    </div>
+                    <script>
+                        var viewModel = kendo.observable({
+                            description: "some text here"
+    });
 
-if (john.average > mark.average) {
-    console.log(john.fullName + '\'s family pays higher tips, with an average of $' + john.average);
-} else if (mark.average > john.average) {
-    console.log(mark.fullName + '\'s family pays higher tips, with an average of $' + mark.average);
-} 
+
+
+  $(document).ready(function(){
+
+    var window = $('#window-container').kendoWindow({title:'Passing Data Values In', width:200}).data('kendoWindow');
+    var window2 = $('#window-container2').kendoWindow({title:'Binding Data',width:200,  position:{left:"30%", top:30}}).data('kendoWindow');
+
+
+     var kendoDialog = kendo.template($("#window-template").html());
+            window.open();
+            window.content(kendoDialog(viewModel));
+
+
+
+
+
+     var kendoDialog2 = kendo.template($("#window-template2").html());
+            window2.open();
+            window2.content(kendoDialog2);
+
+
+            kendo.bind($("#window-container2"), viewModel);
+
+
+  });
+
+
+
+</script>
+
+
+                    <script id="window-template" type="text/x-kendo-template">
+                        <div class="col-sm-10">
+
+                            #= data.description #
+            </div>
+                    </script>
+
+
+                    <script id="window-template2" type="text/x-kendo-template">
+                        <div class="col-sm-10">
+                            <span data-bind="html:description"></span>
+                        </div>
+                    </script>
+  
+  
+</div>
+
+
+</body>
+</html>

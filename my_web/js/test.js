@@ -4,27 +4,77 @@ var filter = {
     }
 };
 
-$(document).ready(function () {
-    var crudServiceBaseUrl = "http://localhost:8080/weavingMachineRaw",
-        dataSource = new kendo.data.DataSource({
-            transport: {
-                read: {
-                    url: crudServiceBaseUrl,
-                    dataType: "json",
-                    type: "GET"
-                },
+var keys, wnd, detailsTemplate, form;
+
+var normal = {
+    type: "number",
+    defaultValue: 1,
+    validation: { required: true, min: 1 }
+};
+
+
+$(function () {
+    var crudServiceBaseUrl = "http://localhost:8080/weavingMachineRaw";
+    var wnd = $("#details")
+        .kendoWindow({
+            title: "Description",
+            modal: true,
+            width: 300,
+            visible: false,
+        }).data("kendoWindow");
+    var dataSource = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: crudServiceBaseUrl,
+                dataType: "json",
+                type: "GET"
             },
-            schema: {
-                data: "response"
+            update: {
+                url: crudServiceBaseUrl,
+                dataType: "json",
+                contentType: "application/json",
+                method: "POST"
             },
-            parameterMap: function (options, operation) {
-                if (operation !== "read" && options.models) {
-                    return { models: kendo.stringify(options.models) };
+            create: {
+                url: crudServiceBaseUrl,
+                dataType: "json",
+                contentType: "application/json",
+                method: "POST"
+            },
+            parameterMap: function (data, operation) {
+                if ("update,create".search(operation) > -1) {
+                    return JSON.stringify(data);
+                }
+                if (operation !== "read" && data.models) {
+                    return { models: kendo.stringify(data.models) };
                 }
             }
-        });
+        },
+        schema: {
+            data: "response",
+            model: {
+                id: "machineId",
+                fields: {
+                    "machineId": {
+                        editable: true,
+                    },
+                    "picknoa": normal,
+                    "picknob": normal,
+                    "clothbeam": normal,
+                    "lenostop": normal,
+                    "warpstop": normal,
+                    "weftstop": normal,
+                    "mchfail": normal,
+                    "totalstop": normal,
+                    "rpm": normal,
+                    "state": normal
+                }
+            }
+        },
+    });
 
-    var grid = $("#grid").kendoGrid({
+
+    $("#grid").kendoGrid({
         dataSource: dataSource,
         batch: true,
         pageSize: 20,
@@ -33,107 +83,67 @@ $(document).ready(function () {
         toolbar: ["create", "cancel"],
         serverPaging: true,
         serverFiltering: true,
-        columns: [
-            { field: "machineId", title: "machineId"},
-            { field: "picknoa", title: "picknoa" },
-            { field: "picknob", title: "picknob" },
-            { field: "clothbeam", title: "clothbeam" },
-            { field: "lenostop", title: "lenostop" },
-            { field: "warpstop", title: "warpstop" },
-            { field: "weftstop", title: "weftstop" },
-            { field: "mchfail", title: "mchfail" },
-            { field: "totalstop", title: "totalstop" },
-            { field: "rpm", title: "rpm" },
-            { field: "state", title: "state" },
-            {
-                command: ["destroy",
-                    {
-                        name: "Confirm",
-                        click: function (e) {
-                            e.preventDefault();
-                            var tr = $(e.target).closest("tr");
-                            this.editRow(tr)
-                            var validator = $(tr).kendoValidator().data("kendoValidator");
-                            validator.validate()
-                        }
-                    }], width: "200px"
-            }],
+        editable: "popup",
         sortable: true,
-        editable: true,
         filterable: true,
+        // usual_setting
+        columns: [
+            {
+                field: "machineId",
+                width: "140px",
+                template: function (e) {
+                    return `<button class="showDetail")">${e.machineId}</button>`
+                },
+                filterable: filter
+            },
+            { field: "picknoa", width: "140px" },
+            { field: "picknob", width: "140px" },
+            { field: "clothbeam", width: "140px" },
+            { field: "lenostop", width: "140px" },
+            { field: "warpstop", width: "140px" },
+            { field: "weftstop", width: "140px" },
+            { field: "mchfail", width: "140px" },
+            { field: "totalstop", width: "140px" },
+            { field: "rpm", width: "140px" },
+            { field: "state", width: "140px" },
+            {
+                command: ["edit"], title: "&nbsp;", width: "250px"
+            }
+        ],
+    });
 
-        // columns: [{
-        //     field: "machineId",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "picknoa",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "picknob",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "clothbeam",
-        //     width: 10,
-        //     filterable: filter
-        // }, {
-        //     field: "lenostop",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "warpstop",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "weftstop",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "mchfail",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "totalstop",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "rpm",
-        //     width: 10,
-        //     filterable: filter
-        // },
-        // {
-        //     field: "state",
-        //     width: 10,
-        //     filterable: filter
-        // }
-        // ],
+    $("body").on("click", ".showDetail", function () {
+        var dataItem = $("#grid").data("kendoGrid").dataItem($(this).closest("tr"));
+        var content = "";
+        console.log(dataItem)
+        for (i in form) {
+            var type = (form[i].type == "Integer") ? "class ='number'" : "";
+            content += `
+            <div>
+            ${form[i].description}&emsp13;<input type="text" ${type} name="${i}" value="${dataItem[i]}">
+            </div>
+            `;
+        } //for
+        $("#details").html(content);
+        // wnd.content(detailsTemplate(dataItem));
+        wnd.center().open();
+        // detailsTemplate = kendo.template($("#template").html());
     });
 
 
-    
     $("#export").click(function (e) {
-        var gri = $("#grid").data("kendoGrid");
-        gri.saveAsExcel();
+        var grid = $("#grid").data("kendoGrid");
+        grid.saveAsExcel();
     });
+
 
     $.ajax({
         url: "http://localhost:8080/weavingMachineRaw/description",
         method: "get",
         dataType: "json",
-
         success: function (data) {
             var content = "";
-            var form = data.response;
+            form = data.response;
             for (i in form) {
                 var type = (form[i].type == "Integer") ? "class ='number'" : "";
                 content += `
@@ -149,10 +159,4 @@ $(document).ready(function () {
             console.log(thrownError)
         }
     }); //ajax
-});
-
-function customBoolEditor(container, options) {
-    var guid = kendo.guid();
-    $('<input class="k-checkbox" id="' + guid + '" type="checkbox" name="Discontinued" data-type="boolean" data-bind="checked:Discontinued">').appendTo(container);
-    $('<label class="k-checkbox-label" for="' + guid + '">​</label>').appendTo(container);
-}
+});//$function
