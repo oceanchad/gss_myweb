@@ -15,6 +15,7 @@ var normal = {
 
 $(function () {
     var crudServiceBaseUrl = "http://localhost:8080/weavingMachineRaw";
+
     var wnd = $("#details")
         .kendoWindow({
             title: "Description",
@@ -22,6 +23,7 @@ $(function () {
             width: 300,
             visible: false,
         }).data("kendoWindow");
+
     var dataSource = new kendo.data.DataSource({
         transport: {
             read: {
@@ -45,11 +47,9 @@ $(function () {
                 if ("update,create".search(operation) > -1) {
                     return JSON.stringify(data);
                 }
-                if (operation !== "read" && data.models) {
-                    return { models: kendo.stringify(data.models) };
-                }
             }
         },
+        pageSize: 20,
         schema: {
             data: "response",
             model: {
@@ -68,7 +68,10 @@ $(function () {
                     "totalstop": normal,
                     "rpm": normal,
                     "state": normal
-                }
+                },
+            },
+            total: function (data) {
+                return data.response.length;
             }
         },
     });
@@ -76,17 +79,19 @@ $(function () {
 
     $("#grid").kendoGrid({
         dataSource: dataSource,
-        batch: true,
-        pageSize: 20,
-        pageable: true,
+        editable: "inline",
         height: 550,
-        toolbar: ["create", "cancel"],
-        serverPaging: true,
-        serverFiltering: true,
-        editable: "popup",
+        toolbar: [
+            { name: "create" },
+            { name: "cancel" }
+        ],
         sortable: true,
-        filterable: true,
-        // usual_setting
+        pageable: {
+            refresh: true,
+            pageSizes: true,
+            buttonCount: 5
+        },
+        filterable: true, // usual_setting
         columns: [
             {
                 field: "machineId",
@@ -115,19 +120,17 @@ $(function () {
     $("body").on("click", ".showDetail", function () {
         var dataItem = $("#grid").data("kendoGrid").dataItem($(this).closest("tr"));
         var content = "";
-        console.log(dataItem)
         for (i in form) {
             var type = (form[i].type == "Integer") ? "class ='number'" : "";
             content += `
             <div>
-            ${form[i].description}&emsp13;<input type="text" ${type} name="${i}" value="${dataItem[i]}">
+            ${form[i].description}&emsp;<input type="text" ${type} name="${i}" value="${dataItem[i]}">
             </div>
             `;
         } //for
         $("#details").html(content);
-        // wnd.content(detailsTemplate(dataItem));
+        $("#details input.number").kendoNumericTextBox();
         wnd.center().open();
-        // detailsTemplate = kendo.template($("#template").html());
     });
 
 
@@ -155,8 +158,5 @@ $(function () {
             $("#form").html(content);
             $("#form input.number").kendoNumericTextBox();
         },
-        error: function (thrownError) {
-            console.log(thrownError)
-        }
     }); //ajax
 });//$function
